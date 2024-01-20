@@ -21,5 +21,6 @@ export default function Burgers() {
       <SnackTitle>Hambúrgueres</SnackTitle>
       <Snacks snacks={burgers}></Snacks>
     </>
+
   )
 }
