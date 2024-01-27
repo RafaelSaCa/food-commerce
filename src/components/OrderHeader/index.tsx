@@ -18,7 +18,7 @@ export function OrderHeader() {
           <h3>Meus Pedidos</h3>
           <span>
             <strong>
-              {`${cart.length}`.padStart(2, '0')}
+              {`${cart.length}`.padStart(2, '0')} item(s)
             </strong>
           </span>
         </div>
