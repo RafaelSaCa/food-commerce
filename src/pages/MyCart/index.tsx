@@ -1,14 +1,14 @@
 import { Head } from '../../components/Head'
 import { OrderHeader } from '../../components/OrderHeader'
-import { TableDesktop } from './Table/TableDesktop'
+import { Table } from './Table'
 import { Container } from './styles'
 
-export default function MyCart() {
+export default function Main() {
   return (
     <Container>
       <Head title='Carrinho' />
       <OrderHeader />
-      <TableDesktop />
+      <Table />
     </Container>
   )
 }
