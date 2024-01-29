@@ -90,8 +90,23 @@ export const Container = styled.main`
         width: 1.5rem;
         padding-right: 0;
 
-        /* ação / deletar */
+        button {
+          background: none;
+          flex: 0;
+          border: none;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          svg {
+              fill: ${({ theme }) => theme.colors.yellow};
+              width: 1.5rem;
+              height: 1.5rem;
+
+          }
       }
     }
   }
+}
 `
