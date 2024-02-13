@@ -36,10 +36,26 @@ interface CartProviderProps {
 }
 
 export const CartContext = createContext({} as CartContextProps)
+const localStorageKey = '@FoodCommerce:cart'
 
 export function CartProvider({ children }: CartProviderProps) {
-  const navigate = useNavigate()
-  const [cart, setCart] = useState<Snack[]>([])
+const navigate = useNavigate()
+const [cart, setCart] = useState<Snack[]>(() => {
+const value = localStorage.getItem(localStorageKey)
+
+    if (value) return JSON.parse(value)
+
+    return []
+  })
+
+  function saveCart(items: Snack[]) {
+    setCart(items)
+    localStorage.setItem(localStorageKey, JSON.stringify(items))
+  }
+
+  function clearCart() {
+    localStorage.removeItem(localStorageKey)
+  }
 
   function addSnackIntoCart(snack: SnackData): void {
     const snackExistentInCart = cart.find(
@@ -58,7 +74,7 @@ export function CartProvider({ children }: CartProviderProps) {
       })
       console.log(`newCart atualização`, newCart)
       toast.success(`${snackEmoji(snack.snack)} ${snack.name} adicionado ao pedido!`)
-      setCart(newCart)
+      saveCart(newCart)
 
       return
     }
@@ -67,7 +83,7 @@ export function CartProvider({ children }: CartProviderProps) {
     const newCart = [...cart, newSnack]
     toast.success(`${snackEmoji(snack.snack)} ${snack.name} adicionado ao pedido!`)
 
-    setCart(newCart)
+    saveCart(newCart)
   }
 
   function removeSnackFromCart(snack: Snack) {
@@ -93,7 +109,7 @@ export function CartProvider({ children }: CartProviderProps) {
       return item
     })
 
-    setCart(newCart)
+    saveCart(newCart)
   }
 
   function snackCartIncrement(snack: Snack) {
@@ -109,7 +125,8 @@ export function CartProvider({ children }: CartProviderProps) {
   }
 
   function payOrder(customer: CustomerData) {
-    console.log("payOrder", cart, customer)
+    console.log('payOrder', cart, customer)
+    clearCart() // deve ser executado após retorno positivo da api
     return
   }
 
