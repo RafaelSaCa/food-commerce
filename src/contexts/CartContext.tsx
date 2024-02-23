@@ -1,25 +1,13 @@
-import { ReactNode, createContext, useState } from 'react'
+import { createContext, ReactNode, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { SnackData } from '../interfaces/SnackData'
-import { snackEmoji } from '../helpers/snackEmoji'
+
 import { CustomerData } from '../interfaces/CustomerData'
+import { Snack } from '../interfaces/Snack'
+import { SnackData } from '../interfaces/SnackData'
 
-interface Snack extends SnackData {
-  quantity: number
-  subtotal: number
-}
-
-interface UpdateCartProps {
-  id: number
-  snack: string
-  newQuantity: number
-}
-
-interface RemoveSnackFromCart {
-  id: number
-  snack: string
-}
+import { snackEmoji } from '../helpers/snackEmoji'
+import { processCheckout } from '../services/api'
 
 interface CartContextProps {
   cart: Snack[]
@@ -36,13 +24,13 @@ interface CartProviderProps {
 }
 
 export const CartContext = createContext({} as CartContextProps)
+
 const localStorageKey = '@FoodCommerce:cart'
 
 export function CartProvider({ children }: CartProviderProps) {
-const navigate = useNavigate()
-const [cart, setCart] = useState<Snack[]>(() => {
-const value = localStorage.getItem(localStorageKey)
-
+  const navigate = useNavigate()
+  const [cart, setCart] = useState<Snack[]>(() => {
+    const value = localStorage.getItem(localStorageKey)
     if (value) return JSON.parse(value)
 
     return []
@@ -70,34 +58,38 @@ const value = localStorage.getItem(localStorageKey)
 
           return { ...item, quantity, subtotal }
         }
+
         return item
       })
-      console.log(`newCart atualização`, newCart)
-      toast.success(`${snackEmoji(snack.snack)} ${snack.name} adicionado ao pedido!`)
+
+      toast.success(`Outro(a) ${snackEmoji(snack.snack)} ${snack.name} adicionado nos pedidos!`)
       saveCart(newCart)
 
       return
     }
-    //adicionar
-    const newSnack = { ...snack, quantity: 1, subtotal: snack.price }
-    const newCart = [...cart, newSnack]
-    toast.success(`${snackEmoji(snack.snack)} ${snack.name} adicionado ao pedido!`)
 
+    const newSnack = { ...snack, quantity: 1, subtotal: snack.price }
+    const newCart = [...cart, newSnack] // push de um array
+
+    toast.success(`${snackEmoji(snack.snack)} ${snack.name} adicionado nos pedidos!`)
     saveCart(newCart)
   }
 
   function removeSnackFromCart(snack: Snack) {
     const newCart = cart.filter((item) => !(item.id === snack.id && item.snack === snack.snack))
-    setCart(newCart)
+
+    saveCart(newCart)
   }
 
   function updateSnackQuantity(snack: Snack, newQuantity: number) {
     if (newQuantity <= 0) return
+
     const snackExistentInCart = cart.find(
       (item) => item.id === snack.id && item.snack === snack.snack,
     )
 
     if (!snackExistentInCart) return
+
     const newCart = cart.map((item) => {
       if (item.id === snackExistentInCart.id && item.snack === snackExistentInCart.snack) {
         return {
@@ -106,6 +98,7 @@ const value = localStorage.getItem(localStorageKey)
           subtotal: item.price * newQuantity,
         }
       }
+
       return item
     })
 
@@ -124,9 +117,19 @@ const value = localStorage.getItem(localStorageKey)
     navigate('/payment')
   }
 
-  function payOrder(customer: CustomerData) {
-    console.log('payOrder', cart, customer)
-    clearCart() // deve ser executado após retorno positivo da api
+  async function payOrder(customer: CustomerData) {
+    try {
+      const response = await processCheckout(cart, customer)
+      if (response.data.status !== 'PAID') {
+        toast.error('Erro ao processar o pagamento, por favor, tente novamente mais tarde.')
+        return
+      }
+      toast.success('Pagamento realizado com sucesso!')
+      clearCart()
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao processar o pedido.')
+    }
     return
   }
 
