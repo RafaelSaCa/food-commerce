@@ -1,5 +1,7 @@
-import { ReactNode, createContext, useEffect, useState } from 'react'
+import { createContext, ReactNode, useEffect, useState } from 'react'
+
 import { SnackData } from '../interfaces/SnackData'
+
 import { getBurgers, getDrinks, getIceCreams, getPizzas } from '../services/api'
 
 interface SnackContextProps {
